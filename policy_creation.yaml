@@ -1,0 +1,132 @@
+---
+- name: Demo PowerProtect Data Manager REST API
+  hosts: localhost
+  gather_facts: false
+
+  vars_prompt:
+  - name: my_password
+    prompt: "Enter your PowerProtect password"
+    unsafe: no
+    private: yes
+    confirm: no
+  vars:
+      ppdm_fqdn: ppdm-test.paclabs.se.lab.emc.com
+      protection_policy: k8s_protection_policy_4
+      newuuid: "{{ 9999999999999999999999 | random | to_uuid }}"
+
+  tasks:
+    - name: Authenticate to PowerProtect Rest API on {{ppdm_fqdn}}
+      uri:
+        url: https://{{ppdm_fqdn}}:8443/api/v2/login
+        method: POST
+        validate_certs: no
+        return_content: yes
+        body_format: json
+        body:
+          username: admin
+          password: '{{my_password}}'
+        status_code: 200
+      register: data
+
+    - name: Display bearer token
+      debug:
+        var: data.json.access_token
+
+    #GET THE ASSIGNED STORAGE SYSTEM
+    - name: Get data domain storage system ID
+      uri:
+        url: https://{{ppdm_fqdn}}:8443/api/v2/storage-systems
+        headers:
+          Authorization: "Bearer {{data.json.access_token}}"
+          Content-Type: "application/json"
+        method: GET
+        validate_certs: no
+        return_content: yes
+        body_format: json
+      register: get_storage
+
+    - name: Display protection storage system
+      debug:
+        var: get_storage.json.content[0].id
+
+    #CHECK FOR THE POLICY
+    - name: Get protection policy {{protection_policy}}
+      uri:
+        url: https://{{ppdm_fqdn}}:8443/api/v2/protection-policies?filter=name%20eq%20%22{{protection_policy}}%22
+        headers:
+          Authorization: "Bearer {{data.json.access_token}}"
+          Content-Type: "application/json"
+        method: GET
+        validate_certs: no
+        return_content: yes
+        body_format: json
+      register: get_policy
+
+    - name: Display protection policy {{protection_policy}} ID
+      debug:
+        var: get_policy.json.content[0].id
+
+    #CREATE THE POLICY IF IT DOESN'T EXIST
+    - name: Create protection policy {{protection_policy}} and UUID - {{newuuid}}
+      uri:
+        url: https://{{ppdm_fqdn}}:8443/api/v2/protection-policies?filter=name%20eq%20%22{{protection_policy}}%22
+        headers:
+          Authorization: "Bearer {{data.json.access_token}}"
+          Content-Type: "application/json"
+        method: POST
+        validate_certs: no
+        return_content: yes
+        status_code: 201
+        body_format: json
+        body: |
+          {
+            "stages": [
+              {
+                "passive": false,
+                "target": {
+                  "storageSystemId": "{{get_storage.json.content[0].id}}"
+                },
+                "type": "PROTECTION",
+                "operations": [
+                  {
+                    "type": "AUTO_FULL",
+                    "schedule": {
+                      "frequency": "DAILY",
+                      "startTime": "2020-07-28T00:00:00Z",
+                      "duration": "PT10H"
+                    }
+                  }
+                ],
+                "retention": {
+                  "interval": 5,
+                  "unit": "DAY"
+                },
+                "id": "{{newuuid}}"
+              }
+            ],
+            "enabled": true,
+            "type": "ACTIVE",
+            "name": "{{protection_policy}}",
+            "priority": 1,
+            "details": {
+              "vm": {
+                "protectionEngine": "VMDIRECT"
+              }
+            },
+            "encrypted": false,
+            "assetType": "KUBERNETES",
+            "dataConsistency": "CRASH_CONSISTENT"
+          }
+      when: get_policy.json.content[0].id is undefined
+
+    - name: Disconnect from the PowerProtect REST API
+      uri:
+        url: https://{{ppdm_fqdn}}:8443/api/v2/logout
+        headers:
+          Authorization: "Bearer {{data.json.access_token}}"
+          Content-Type: "application/json"
+        method: POST
+        validate_certs: no
+        return_content: yes
+        body_format: json
+        status_code: 204

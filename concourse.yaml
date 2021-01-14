@@ -1,0 +1,39 @@
+---
+resources:
+  - name: starbucks-script-repo
+    type: git
+    source:
+      uri: https://github.com/EMC-Underground/service_sql.git
+      branch: master
+
+jobs:
+  - name: deploy-sql
+    public: true
+    serial: true
+    plan:
+      - get: service-sql-repo
+      - task: deploy-sql
+        params:
+          DOCKER_HOST: ((dockerhost))
+          BRANCH_NAME: ((branch_name))
+          SA_PASSWORD: ((SA_PASSWORD))
+        config:
+          inputs:
+            - name: service-sql-repo
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpinelinux/docker-cli
+              tag: latest
+          run:
+            path: sh
+            args:
+            - -c
+            - |
+              apk add gcc
+              apk add make
+              cd service-sql-repo
+              ls -la
+              make
+
