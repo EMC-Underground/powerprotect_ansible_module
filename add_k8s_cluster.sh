@@ -64,6 +64,29 @@ existinginventory=$(curl -k \
 
 echo $existinginventory
 
+# GET ALL CERTIFICATES
+kubecertpayload=$(curl -k \
+  --request GET \
+  --url "https://${server}:8443/api/v2/certificates?type=HOST" \
+  --header "Authorization: ${token}")
+
+# TRUST THE KUBERNETES CERTIFICATE
+payload=$(echo $kubecertpayload | jq -r --arg a "$server" '.content[] | select(.host==$a) | .state = "ACCEPTED"')
+echo $payload
+
+curl -k \
+  --request PUT \
+  --url "https://${server}:8443/api/v2/certificates" \
+  --header 'content-type: application/json' \
+  --header "Authorization: ${token}" \
+  --data "$payload"
+
+# DELETE CREDENTIALS
+curl -k \
+  --request DELETE \
+  --url "https://${server}:8443/api/v2/${credid}" \
+  --header "Authorization: ${token}"
+
 # ADD AN INVENTORY SOURCE, SPECIFIALLY A KUBE CLUSTER
 getallids=$(echo $existingcreds | jq -r '.content[].id')
 credid=$(echo $existingcreds | jq -r '.content[] | select(.type=="KUBERNETES") | .id')
