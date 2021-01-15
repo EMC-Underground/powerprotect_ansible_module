@@ -9,6 +9,7 @@ credname=kubecreds02
 
 kubeaddress=10.237.198.126
 kubename=powerpaas
+kubeport=6443
 
 
 
@@ -30,6 +31,10 @@ echo "PRINTING OUT ALL THE CREDS FOUND"
 echo ${existingcreds}
 
 # CREATE A CRED IN THIS CASE FOR KUBERNETES
+ppdmsatoken=$(kubectl get secret -n powerprotect $(kubectl get serviceaccount \
+-n powerprotect ppdm-discovery-serviceaccount -o jsonpath='{.secrets[0].name}') \
+-o jsonpath='{.data.token}')
+
 json_payload=$( jq -n \
                   --arg kubepass "$kubepassword" \
                   --arg kubeuser "$kubeusername" \
@@ -69,6 +74,21 @@ kubecertpayload=$(curl -k \
   --request GET \
   --url "https://${server}:8443/api/v2/certificates?type=HOST" \
   --header "Authorization: ${token}")
+
+# GET THE KUBE CERT
+kubecertpayload=$(curl -k \
+  --request GET \
+  --url "https://${server}:8443/api/v2/certificates?host=$kubeaddress&port=$kubeport&type=HOST" \
+  --header "Authorization: ${token}")
+
+
+# FUNCTION TO CLEAN UP THE CERT AND THE CREDS
+# DELETE THE KUBE CERT
+kubecertid=$(echo $kubecertpayload | jq -r '.id'
+curl -k \
+  --request DELETE \
+  --url "https://${server}:8443/api/v2/certificats/$kubecertid" \
+  --header "Authorization: ${token}"
 
 # TRUST THE KUBERNETES CERTIFICATE
 payload=$(echo $kubecertpayload | jq -r --arg a "$server" '.content[] | select(.host==$a) | .state = "ACCEPTED"')
