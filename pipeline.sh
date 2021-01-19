@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./add_k8s.cluster.sh \
+source ./add_k8s_cluster.sh \
 login \
 createkubecred \
 getkubecert \

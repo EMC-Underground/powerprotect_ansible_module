@@ -1,17 +1,17 @@
 ---
 resources:
-  - name: powerprotect_ansible_module
+  - name: powerprotect-ansible-module
     type: git
     source:
       uri: https://github.com/EMC-Underground/powerprotect_ansible_module.git
-      branch: master
+      branch: main
 
 jobs:
   - name: add-k8s-cluster-ppdm
     public: true
     serial: true
     plan:
-      - get: powerprotect_ansible_module
+      - get: powerprotect-ansible-module
       - task: add-cluster
         params:
           PASSWORD: ((ppdm_password))
@@ -24,7 +24,7 @@ jobs:
           KUBEPORT: ((kube_port))
         config:
           inputs:
-            - name: powerprotect_ansible_module
+            - name: powerprotect-ansible-module
           platform: linux
           image_resource:
             type: docker-image
