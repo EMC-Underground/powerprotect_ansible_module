@@ -36,9 +36,4 @@ jobs:
             args:
             - -c
             - |
-              apk add gcc
-              apk add make
-              cd service-sql-repo
-              ls -la
-              make
-
+              ./pipline.sh
