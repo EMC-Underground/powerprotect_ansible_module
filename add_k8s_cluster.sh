@@ -17,7 +17,8 @@ kubeport=6443
 
 
 # LOGIN AND GET THE TOKEN
-login() { request=$(curl -k --location --request POST https://${server}:8443/api/v2/login \
+login() {
+request=$(curl -k --location --request POST https://${server}:8443/api/v2/login \
 --header 'Content-Type: application/json' \
 --data "{"\"username\"":"\"admin\"","\"password\"":"\"$password\""}")
 
@@ -26,8 +27,8 @@ echo $token
 }
 
 # GET ALL OF THE CREDS FROM PPDM
-
-getallcreds() { echo " GETING ALL OF THE CREDS FROM PPDM"
+getallcreds() {
+echo " GETING ALL OF THE CREDS FROM PPDM"
 existingcreds=$( curl -k \
   --request GET \
   --url "https://${server}:8443/api/v2/credentials?pageSize=100&page=1" \
@@ -38,14 +39,15 @@ echo ${existingcreds}
 }
 
 # CREATE A CRED IN THIS CASE FOR KUBERNETES
-createkubecred() { json_payload=$( jq -n \
-                  --arg kubepass "$kubepassword" \
-                  --arg kubeuser "$kubeusername" \
-                  --arg credname "$credname" \
-                  --arg type "KUBERNETES" \
-                  --arg method "TOKEN" \
-                  '{name: $credname, password: $kubepass, username: $kubeuser,
-                  type: $type, method: $method}' )
+createkubecred() {
+json_payload=$( jq -n \
+  --arg kubepass "$kubepassword" \
+  --arg kubeuser "$kubeusername" \
+  --arg credname "$credname" \
+  --arg type "KUBERNETES" \
+  --arg method "TOKEN" \
+  '{name: $credname, password: $kubepass, username: $kubeuser,
+   type: $type, method: $method}' )
 
 echo "Here is the JSON Payload $json_payload"
 
@@ -58,8 +60,8 @@ curl -k \
 }
 
 # GET ALL KUBERNETES-CLUSTERS FROM PPDM
-
-getkubeclusters() {existingkubeclusters=$(curl -k \
+getkubeclusters() {
+existingkubeclusters=$(curl -k \
   --request GET \
   --url "https://${server}:8443/api/v2/kubernetes-clusters" \
   --header "Authorization: ${token}")
@@ -68,31 +70,38 @@ echo $existingkubeclusters
 }
 
 # RETRIEVE ALL INVENTORY SOURCES FROM PPDM
-getallinventory() {existinginventory=$(curl -k \
+getallinventory() {
+existinginventory=$(curl -k \
   --request GET \
   --url "https://${server}:8443/api/v2/inventory-sources?pageSize=100&page=1" \
   --header "Authorization: ${token}")
 
 echo $existinginventory
 }
+
 # GET ALL CERTIFICATES
-getallcerts() { kubecertpayload=$(curl -k \
+getallcerts() {
+kubecertpayload=$(curl -k \
   --request GET \
   --url "https://${server}:8443/api/v2/certificates?type=HOST" \
   --header "Authorization: ${token}")
 }
+
 # GET THE KUBE CERT
-getkubecert() { kubecertpayload=$(curl -k \
+getkubecert() {
+kubecertpayload=$(curl -k \
   --request GET \
-  --url "https://${server}:8443/api/v2/certificates?host=$kubeaddress&port=$kubeport&type=HOST" \
+  --url "https://${server}:8443/api/v2/certificates?host=${kubeaddress}&port=${kubeport}&type=HOST" \
   --header "Authorization: ${token}")
+echo $kubecertpayload
 }
 
 
 # FUNCTION TO CLEAN UP THE CERT AND THE CREDS
-# DELETE THE KUBE CERT
+# DELETE THE KUBE CERT REQUIRES THE FUNCTION GETKUBECERT TO BE RAN FIRST
 deletekubecert() {
-  kubecertid=$(echo $kubecertpayload | jq -r '.id')
+kubecertid=$(echo $kubecertpayload | jq -r '.id')
+
 curl -k \
   --request DELETE \
   --url "https://${server}:8443/api/v2/certificats/${kubecertid}" \
@@ -100,7 +109,9 @@ curl -k \
 }
 
 # TRUST THE KUBERNETES CERTIFICATE
-trustkubecert() { payload=$(echo $kubecertpayload | jq -r --arg a "$server" '.content[] | select(.host==$a) | .state = "ACCEPTED"')
+trustkubecert() {
+payload=$(echo $kubecertpayload | jq -r --arg a "$server" '.content[] | \
+  select(.host==$a) | .state = "ACCEPTED"')
 echo $payload
 
 curl -k \
@@ -112,14 +123,20 @@ curl -k \
 }
 
 # DELETE CREDENTIALS
-deletecreds() { curl -k \
+deletecreds() {
+credid=$1
+
+  curl -k \
   --request DELETE \
-  --url "https://${server}:8443/api/v2/${credid}" \
+  --url "https://${server}:8443/api/v2/credentials/${credid}" \
   --header "Authorization: ${token}"
+
+echo "https://${server}:8443/api/v2/${credid}"
 }
 
 # ADD AN INVENTORY SOURCE, SPECIFIALLY A KUBE CLUSTER
-addkubesource() { getallids=$(echo $existingcreds | jq -r '.content[].id')
+addkubesource() {
+getallids=$(echo $existingcreds | jq -r '.content[].id')
 credid=$(echo $existingcreds | jq -r '.content[] | select(.type=="KUBERNETES") | .id')
 
 json_payload=$( jq -n \

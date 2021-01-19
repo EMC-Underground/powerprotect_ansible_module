@@ -1,25 +1,30 @@
 ---
 resources:
-  - name: starbucks-script-repo
+  - name: powerprotect_ansible_module
     type: git
     source:
-      uri: https://github.com/EMC-Underground/service_sql.git
+      uri: https://github.com/EMC-Underground/powerprotect_ansible_module.git
       branch: master
 
 jobs:
-  - name: deploy-sql
+  - name: add-k8s-cluster-ppdm
     public: true
     serial: true
     plan:
-      - get: service-sql-repo
-      - task: deploy-sql
+      - get: powerprotect_ansible_module
+      - task: add-cluster
         params:
-          DOCKER_HOST: ((dockerhost))
-          BRANCH_NAME: ((branch_name))
-          SA_PASSWORD: ((SA_PASSWORD))
+          PASSWORD: ((ppdm_password))
+          SERVER: ((ppdm_server))
+          CREDNAME: ((cred_name))
+          KUBEUSERNAME: ((cred_kube_username))
+          KUBEADDRESS: ((kube_address))
+          KUBEPASSWORD: ((ppdm_discovery_token))
+          KUBENAME: ((kube_name))
+          KUBEPORT: ((kube_port))
         config:
           inputs:
-            - name: service-sql-repo
+            - name: powerprotect_ansible_module
           platform: linux
           image_resource:
             type: docker-image
