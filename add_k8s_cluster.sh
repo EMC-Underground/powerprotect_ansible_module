@@ -23,6 +23,7 @@ kubeusername=$(echo $KUBEUSERNAME)
 kubeaddress=$(echo $KUBEADDRESS)
 kubename=$(echo $KUBENAME)
 kubeport=$(echo $KUBEPORT)
+credname=$(echo $CREDNAME)
 
 
 # LOGIN AND GET THE TOKEN
@@ -113,7 +114,7 @@ kubecertid=$(echo $kubecertpayload | jq -r '.id')
 
 curl -k \
   --request DELETE \
-  --url "https://${server}:8443/api/v2/certificats/${kubecertid}" \
+  --url "https://${server}:8443/api/v2/certificates/${kubecertid}" \
   --header "Authorization: ${token}"
 }
 
@@ -125,7 +126,7 @@ echo $payload
 
 curl -k \
   --request PUT \
-  --url "https://${server}:8443/api/v2/certificates" \
+  --url "https://${server}:8443/api/v2/certificates/${kubecertid}" \
   --header 'content-type: application/json' \
   --header "Authorization: ${token}" \
   --data "$payload"
