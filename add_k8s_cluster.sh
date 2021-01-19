@@ -1,19 +1,28 @@
-#!/bin/bash
+#/bin/bash
 
-password=Password#1
-server='10.237.198.35'
+#password=Password#1
+#server='10.237.198.35'
 
-kubepassword=$(kubectl get secret -n powerprotect $(kubectl get serviceaccount \
--n powerprotect ppdm-discovery-serviceaccount -o jsonpath='{.secrets[0].name}') \
--o jsonpath='{.data.token}')
+#credname=kubecreds02
+#kubeusername=kubeuser
+#kubeaddress=10.237.198.126
+#kubename=powerpaas
+#kubeport=6443
 
-kubeusername=kubeuser
-credname=kubecreds02
+#USING KUBECTL WE GRAB THE PPDM DISCOVERY TOKEN FROM THE K8S CLUSTER
+#kubepassword=$(kubectl get secret -n powerprotect $(kubectl get serviceaccount \
+#-n powerprotect ppdm-discovery-serviceaccount -o jsonpath='{.secrets[0].name}') \
+#-o jsonpath='{.data.token}')
 
-kubeaddress=10.237.198.126
-kubename=powerpaas
-kubeport=6443
+#REFERENCING THE SECRETS IN VAULT FOR THE VARIABLE VALUES
+password=$(echo $PASSWORD)
+server=$(echo $SERVER)
 
+kubepassword=$(echo $KUBEPASSWORD)
+kubeusername=$(echo $KUBEUSERNAME)
+kubeaddress=$(echo $KUBEADDRESS)
+kubename=$(echo $KUBENAME)
+kubeport=$(echo $KUBEPORT)
 
 
 # LOGIN AND GET THE TOKEN
