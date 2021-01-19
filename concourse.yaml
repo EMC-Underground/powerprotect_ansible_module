@@ -36,4 +36,7 @@ jobs:
             args:
             - -c
             - |
-              ./pipline.sh
+              ls -la
+              cd powerprotect-ansible-module
+              ./pipeline.sh
+
