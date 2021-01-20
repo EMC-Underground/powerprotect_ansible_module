@@ -27,7 +27,7 @@ credname=$(echo $CREDNAME)
 
 
 # LOGIN AND GET THE TOKEN
-login() {
+ppdm_login() {
 request=$(curl -k --location --request POST https://${server}:8443/api/v2/login \
 --header 'Content-Type: application/json' \
 --data "{"\"username\"":"\"admin\"","\"password\"":"\"$password\""}")
@@ -99,11 +99,11 @@ kubecertpayload=$(curl -k \
 
 # GET THE KUBE CERT
 getkubecert() {
-kubecertpayload=$(curl -k \
-  --request GET \
-  --url "https://${server}:8443/api/v2/certificates?host=${kubeaddress}&port=${kubeport}&type=HOST" \
-  --header "Authorization: ${token}")
-echo $kubecertpayload
+  kubecertpayload=$(curl -k \
+    --request GET \
+    --url "https://${server}:8443/api/v2/certificates?host=${kubeaddress}&port=${kubeport}&type=HOST" \
+    --header "Authorization: ${token}")
+  echo $kubecertpayload
 }
 
 
@@ -149,7 +149,7 @@ echo "https://${server}:8443/api/v2/${credid}"
 # ADD AN INVENTORY SOURCE, SPECIFIALLY A KUBE CLUSTER
 addkubesource() {
 getallids=$(echo $existingcreds | jq -r '.content[].id')
-credid=$(echo $existingcreds | jq -r '.content[] | select(.type=="KUBERNETES") | .id')
+credid=$(echo $existingcreds | jq -r --arg KUBEUSERNAME "$KUBEUSERNAME" '.content[] | select(.name==$KUBEUSERNAME) | .id')
 
 json_payload=$( jq -n \
                   --arg kubeaddress "$kubeaddress" \

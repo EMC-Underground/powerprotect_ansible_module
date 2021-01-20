@@ -1,8 +1,9 @@
-#!/usr/bin/env ash
+#!/usr/bin/env bash
 
+#set -x
 echo "Logging in to PPDM"
 source ./add_k8s_cluster.sh
-login
+ppdm_login
 echo "Creating the Kubernetes Credentials"
 createkubecred
 echo "Grabbing the Kubernetes Certificate"
