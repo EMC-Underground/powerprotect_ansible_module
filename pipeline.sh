@@ -9,3 +9,7 @@ echo "Grabbing the Kubernetes Certificate"
 getkubecert
 echo "Trusting the Kubernetes Certificate"
 trustkubecert
+echo "Grabbing all Cred Information"
+getallcreds
+echo "Adding the Kubernetes Cluster to Asset Source"
+addkubesource
