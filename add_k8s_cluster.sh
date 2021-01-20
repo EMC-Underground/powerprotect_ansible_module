@@ -110,7 +110,7 @@ echo $kubecertpayload
 # FUNCTION TO CLEAN UP THE CERT AND THE CREDS
 # DELETE THE KUBE CERT REQUIRES THE FUNCTION GETKUBECERT TO BE RAN FIRST
 deletekubecert() {
-kubecertid=$(echo $kubecertpayload | jq -r '.id')
+kubecertid=$(echo $kubecertpayload | jq -r '.[] | .id')
 
 curl -k \
   --request DELETE \
@@ -120,8 +120,10 @@ curl -k \
 
 # TRUST THE KUBERNETES CERTIFICATE
 trustkubecert() {
-payload=$(echo $kubecertpayload | jq -r --arg a "$server" '.content[] | \
-  select(.host==$a) | .state = "ACCEPTED"')
+
+payload=$(echo $kubecertpayload | jq -r --arg a "${kubeaddress}" '.[] | select(.host=$a) | .state = "ACCEPTED"')
+
+kubecertid=$(echo $kubecertpayload | jq -r '.[] | .id')
 echo $payload
 
 curl -k \
