@@ -12,7 +12,7 @@
 #USING KUBECTL WE GRAB THE PPDM DISCOVERY TOKEN FROM THE K8S CLUSTER
 #kubepassword=$(kubectl get secret -n powerprotect $(kubectl get serviceaccount \
 #-n powerprotect ppdm-discovery-serviceaccount -o jsonpath='{.secrets[0].name}') \
-#-o jsonpath='{.data.token}')
+#-o jsonpath='{.data.token}') | base64 -d
 
 #REFERENCING THE SECRETS IN VAULT FOR THE VARIABLE VALUES
 password=$(echo $PASSWORD)
