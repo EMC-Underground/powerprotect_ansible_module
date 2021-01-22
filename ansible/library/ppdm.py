@@ -38,6 +38,11 @@ class Ppdm:
         response = self.rest_get("/protection-rules")
         return json.loads(response.text)
 
+    def delete_protection_rule(self, id):
+        logger.debug("Method: delete_protection_rule")
+        response = self.rest_delete(f"/protection-rules/{id}")
+        return json.loads(response.text)
+
     def get_protection_policies(self):
         logger.debug("Method: get_protection_policies")
         response = self.rest_get("/protection-policies")
