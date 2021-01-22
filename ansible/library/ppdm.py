@@ -49,10 +49,25 @@ class Ppdm:
                                  f"?filter=name%20eq%20%22{name}%22")
         return json.loads(response.text)
 
-    def create_protection_rules(self):
+    def create_protection_rules(self, policy_name, rule_name, inventory_type,
+                                label):
+        protection_policy_id = self.get_protection_policy_by_name(policy_name)["content"][0]["id"]
         logger.debug("Method: create_protection_rules")
         body = {"action": "MOVE_TO_GROUP",
-                "actionResult": "InsertProtectPolicyID"}
+                "name": rule_name,
+                "actionResult": protection_policy_id,
+                "conditions": [{
+                    "assetAttributeName": "userTags",
+                    "operator": "EQUALS",
+                    "assetAttributeValue": label
+                }],
+                "connditionConnector": "AND",
+                "inventorySourceType": inventory_type,
+                "priority": 1,
+                "tenant": {
+                    "id": "00000000-0000-4000-a000-000000000000"
+                }
+                }
         response = self.rest_post("/protection-rules", body)
         return json.loads(response.text)
 
