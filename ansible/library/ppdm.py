@@ -51,7 +51,8 @@ class Ppdm:
 
     def create_protection_rules(self, policy_name, rule_name, inventory_type,
                                 label):
-        protection_policy_id = self.get_protection_policy_by_name(policy_name)["content"][0]["id"]
+        protection_policy_id = (self.get_protection_policy_by_name(policy_name)
+                                )["content"][0]["id"]
         logger.debug("Method: create_protection_rules")
         body = {"action": "MOVE_TO_GROUP",
                 "name": rule_name,
